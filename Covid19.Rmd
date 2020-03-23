@@ -1,0 +1,43 @@
+---
+title: "Covid19"
+author: "Max O'Cull"
+date: "3/23/2020"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# COVID-19
+
+Data sources can be found at [John Hopkin's Github](https://github.com/CSSEGISandData/COVID-19).
+
+```{r confirmed}
+confirmed_raw <- read.csv("./time_series_19-covid-Confirmed.csv", header = TRUE)
+recovered_raw <- read.csv("./time_series_19-covid-Recovered.csv", header = TRUE)
+deaths_raw <- read.csv("./time_series_19-covid-Deaths.csv", header = TRUE)
+
+indy_confirmed <- as.data.frame(t((confirmed_raw[confirmed_raw$Province.State == "Indiana", ])[,5:ncol(confirmed_raw)]))
+indy_recovered <- as.data.frame(t((recovered_raw[recovered_raw$Province.State == "Indiana", ])[,5:ncol(recovered_raw)]))
+indy_dead <- as.data.frame(t((deaths_raw[deaths_raw$Province.State == "Indiana", ])[,5:ncol(deaths_raw)]))
+indy_all <- data.frame(seq(22, nrow(indy_confirmed) + 22 - 1), indy_confirmed, indy_recovered, indy_dead)
+colnames(indy_all) <- c("Day", "Confirmed", "Recovered", "Dead")
+indy_all
+
+sk_confirmed <- as.data.frame(t((confirmed_raw[confirmed_raw$Country.Region == "Korea, South", ])[,5:ncol(confirmed_raw)]))
+sk_recovered <- as.data.frame(t((recovered_raw[recovered_raw$Country.Region == "Korea, South", ])[,5:ncol(recovered_raw)]))
+sk_dead <- as.data.frame(t((deaths_raw[deaths_raw$Country.Region == "Korea, South", ])[,5:ncol(deaths_raw)]))
+sk_all <- data.frame(seq(22, nrow(sk_confirmed) + 22 - 1), sk_confirmed, sk_recovered, sk_dead)
+colnames(sk_all) <- c("Day", "Confirmed", "Recovered", "Dead")
+sk_all
+
+plot(indy_all$Day, indy_all$Confirmed)
+plot(sk_all$Day, sk_all$Confirmed)
+
+#fit <- nls(sk_all$Confirmed ~ SSlogis(sk_all$Day, Asym, xmid, scal), data = data.frame(sk_all$Day, sk_all$Confirmed))
+# model <- glm(sk_all$Confirmed ~.,family=binomial(link='logit'),data=sk_all)
+
+# summary(model)
+
+```
