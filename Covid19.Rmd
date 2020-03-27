@@ -23,21 +23,34 @@ indy_recovered <- as.data.frame(t((recovered_raw[recovered_raw$Province.State ==
 indy_dead <- as.data.frame(t((deaths_raw[deaths_raw$Province.State == "Indiana", ])[,5:ncol(deaths_raw)]))
 indy_all <- data.frame(seq(22, nrow(indy_confirmed) + 22 - 1), indy_confirmed, indy_recovered, indy_dead)
 colnames(indy_all) <- c("Day", "Confirmed", "Recovered", "Dead")
-indy_all
 
 sk_confirmed <- as.data.frame(t((confirmed_raw[confirmed_raw$Country.Region == "Korea, South", ])[,5:ncol(confirmed_raw)]))
 sk_recovered <- as.data.frame(t((recovered_raw[recovered_raw$Country.Region == "Korea, South", ])[,5:ncol(recovered_raw)]))
 sk_dead <- as.data.frame(t((deaths_raw[deaths_raw$Country.Region == "Korea, South", ])[,5:ncol(deaths_raw)]))
 sk_all <- data.frame(seq(22, nrow(sk_confirmed) + 22 - 1), sk_confirmed, sk_recovered, sk_dead)
 colnames(sk_all) <- c("Day", "Confirmed", "Recovered", "Dead")
-sk_all
 
-plot(indy_all$Day, indy_all$Confirmed)
-plot(sk_all$Day, sk_all$Confirmed)
+sk_all$Confirmed <- sk_all$Confirmed / max(sk_all$Confirmed) # This is literally just a guess...
 
-#fit <- nls(sk_all$Confirmed ~ SSlogis(sk_all$Day, Asym, xmid, scal), data = data.frame(sk_all$Day, sk_all$Confirmed))
-# model <- glm(sk_all$Confirmed ~.,family=binomial(link='logit'),data=sk_all)
+sk_fit <- glm(Confirmed ~ Day, data = sk_all, family = binomial)
+summary(sk_fit)
 
-# summary(model)
+plot(sk_all$Day, sk_all$Confirmed, ylim=c(0, 1), xlim=c(0, 120))
+sk_pred_range <- seq(22, 122, length.out = 100)
+sk_pred <- predict(sk_fit, newdata = data.frame(Day = sk_pred_range), type = "response")
+lines(sk_pred_range, sk_pred)
 
+# Indy
+indy_all$Confirmed <- indy_all$Confirmed / 1000 # This is literally just a guess...
+
+# If we optimize on the total confirmed cases (the 1000 magic value) such that 
+# R^2 is maximized ~~we'll overfit~~ we'll find the most likely scenario.
+
+indy_fit <- glm(Confirmed ~ Day, data = indy_all, family = binomial)
+summary(indy_fit)
+
+plot(indy_all$Day, indy_all$Confirmed, ylim=c(0, 1), xlim=c(0, 120))
+indy_pred_range <- seq(22, 122, length.out = 100)
+indy_pred <- predict(indy_fit, newdata = data.frame(Day = indy_pred_range), type = "response")
+lines(indy_pred_range, indy_pred)
 ```
